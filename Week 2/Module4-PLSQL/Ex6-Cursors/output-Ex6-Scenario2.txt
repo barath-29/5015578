@@ -1,0 +1,27 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- PL/SQL block to apply an annual fee to all accounts
+SQL> DECLARE
+  2  	 CURSOR c_accounts IS
+  3  	     SELECT ACCOUNTID, BALANCE
+  4  	     FROM ACCOUNTS;
+  5  
+  6  	 v_fee NUMBER := 50; -- Example annual fee amount
+  7  BEGIN
+  8  	 FOR r IN c_accounts LOOP
+  9  	     UPDATE ACCOUNTS
+ 10  	     SET BALANCE = BALANCE - v_fee
+ 11  	     WHERE ACCOUNTID = r.ACCOUNTID;
+ 12  
+ 13  	     DBMS_OUTPUT.PUT_LINE('Account ID: ' || r.ACCOUNTID || ' - Fee applied. New balance: ' || (r.BALANCE - v_fee));
+ 14  	 END LOOP;
+ 15  END;
+ 16  /
+Account ID: 1 - Fee applied. New balance: 950                                   
+Account ID: 2 - Fee applied. New balance: 1450                                  
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

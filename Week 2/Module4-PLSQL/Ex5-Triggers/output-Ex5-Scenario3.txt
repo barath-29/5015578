@@ -1,0 +1,69 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Trigger to enforce business rules on deposits and withdrawals
+SQL> CREATE OR REPLACE TRIGGER CheckTransactionRules
+  2  BEFORE INSERT ON TRANSACTIONS
+  3  FOR EACH ROW
+  4  DECLARE
+  5  	 v_balance NUMBER;
+  6  BEGIN
+  7  	 -- Get the current balance for the account
+  8  	 SELECT BALANCE
+  9  	 INTO v_balance
+ 10  	 FROM ACCOUNTS
+ 11  	 WHERE ACCOUNTID = :NEW.ACCOUNTID;
+ 12  
+ 13  	 -- Check for withdrawal rules
+ 14  	 IF :NEW.TRANSACTIONTYPE = 'Withdrawal' THEN
+ 15  	     IF :NEW.AMOUNT > v_balance THEN
+ 16  		 RAISE_APPLICATION_ERROR(-20001, 'Insufficient funds for withdrawal');
+ 17  	     END IF;
+ 18  	 END IF;
+ 19  
+ 20  	 -- Check for deposit rules
+ 21  	 IF :NEW.TRANSACTIONTYPE = 'Deposit' AND :NEW.AMOUNT <= 0 THEN
+ 22  	     RAISE_APPLICATION_ERROR(-20002, 'Deposit amount must be positive');
+ 23  	 END IF;
+ 24  END;
+ 25  /
+
+Trigger created.
+
+SQL> 
+SQL> -- Test the trigger by inserting valid and invalid transactions
+SQL> BEGIN
+  2  	 -- Valid Deposit
+  3  	 INSERT INTO TRANSACTIONS (TRANSACTIONID, ACCOUNTID, TRANSACTIONDATE, AMOUNT, TRANSACTIONTYPE)
+  4  	 VALUES (3002, 1, SYSDATE, 500, 'Deposit');
+  5  
+  6  	 -- Invalid Withdrawal (Insufficient funds)
+  7  	 BEGIN
+  8  	     INSERT INTO TRANSACTIONS (TRANSACTIONID, ACCOUNTID, TRANSACTIONDATE, AMOUNT, TRANSACTIONTYPE)
+  9  	     VALUES (3003, 2, SYSDATE, 10000, 'Withdrawal');
+ 10  	 EXCEPTION
+ 11  	     WHEN OTHERS THEN
+ 12  		 DBMS_OUTPUT.PUT_LINE(SQLERRM);
+ 13  	 END;
+ 14  END;
+ 15  /
+ORA-20001: Insufficient funds for withdrawal
+ORA-06512: at                      
+"SYSTEM.CHECKTRANSACTIONRULES", line 13
+ORA-04088: error during execution of    
+trigger 'SYSTEM.CHECKTRANSACTIONRULES'                                          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Verify the transactions
+SQL> SELECT * FROM TRANSACTIONS;
+
+TRANSACTIONID  ACCOUNTID TRANSACTI     AMOUNT TRANSACTIO                        
+------------- ---------- --------- ---------- ----------                        
+            1          1 05-AUG-24        200 Deposit                           
+            2          2 05-AUG-24        300 Withdrawal                        
+         3002          1 05-AUG-24        500 Deposit                           
+
+SQL> 
+SQL> SPOOL OFF

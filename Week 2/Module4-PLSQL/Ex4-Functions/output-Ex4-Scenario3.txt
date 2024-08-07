@@ -1,0 +1,48 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Function to check if a customer has sufficient balance
+SQL> CREATE OR REPLACE FUNCTION HasSufficientBalance (
+  2  	 p_account_id NUMBER,
+  3  	 p_amount NUMBER
+  4  ) RETURN BOOLEAN IS
+  5  	 v_balance NUMBER;
+  6  BEGIN
+  7  	 SELECT Balance INTO v_balance FROM Accounts WHERE AccountID = p_account_id;
+  8  
+  9  	 RETURN v_balance >= p_amount;
+ 10  EXCEPTION
+ 11  	 WHEN NO_DATA_FOUND THEN
+ 12  	     RETURN FALSE;
+ 13  END HasSufficientBalance;
+ 14  /
+
+Function created.
+
+SQL> 
+SQL> SELECT * FROM Accounts;
+
+ ACCOUNTID CUSTOMERID ACCOUNTTYPE             BALANCE LASTMODIF                 
+---------- ---------- -------------------- ---------- ---------                 
+         1          1 Savings                    1000 05-AUG-24                 
+         2          2 Checking                   1500 05-AUG-24                 
+
+SQL> 
+SQL> -- Test the function
+SQL> DECLARE
+  2  	 v_sufficient BOOLEAN;
+  3  BEGIN
+  4  	 v_sufficient := HasSufficientBalance(1, 2000); -- Check if account 1 has at least 2000
+  5  	 DBMS_OUTPUT.PUT_LINE('Sufficient Balance: ' || CASE WHEN v_sufficient THEN 'YES' ELSE 'NO' END);
+  6  
+  7  	 v_sufficient := HasSufficientBalance(2, 500); -- Check if account 2 has at least 500
+  8  	 DBMS_OUTPUT.PUT_LINE('Sufficient Balance: ' || CASE WHEN v_sufficient THEN 'YES' ELSE 'NO' END);
+  9  END;
+ 10  /
+Sufficient Balance: NO                                                          
+Sufficient Balance: YES                                                         
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

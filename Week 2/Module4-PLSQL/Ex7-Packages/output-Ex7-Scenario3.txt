@@ -1,0 +1,115 @@
+SQL> VARIABLE input VARCHAR2(30)
+
+ERROR at line 9:
+Not connected
+SQL> -- Package Specification
+SQL> CREATE OR REPLACE PACKAGE AccountOperations AS
+  2      PROCEDURE OpenAccount(
+  3          p_AccountID IN ACCOUNTS.ACCOUNTID%TYPE,
+  4          p_CustomerID IN ACCOUNTS.CUSTOMERID%TYPE,
+  5          p_AccountType IN ACCOUNTS.ACCOUNTTYPE%TYPE,
+  6          p_Balance IN ACCOUNTS.BALANCE%TYPE
+  7      );
+  8
+  9      PROCEDURE CloseAccount(
+  10          p_AccountID IN ACCOUNTS.ACCOUNTID%TYPE
+  11      );
+  12
+  13      FUNCTION GetTotalBalance(
+  14          p_CustomerID IN ACCOUNTS.CUSTOMERID%TYPE
+  15      ) RETURN NUMBER;
+  16  END AccountOperations;
+  17  /
+
+ERROR at line 12:
+Not connected
+SQL> -- Package Body
+SQL> CREATE OR REPLACE PACKAGE BODY AccountOperations AS
+  2
+  3      PROCEDURE OpenAccount(
+  4          p_AccountID IN ACCOUNTS.ACCOUNTID%TYPE,
+  5          p_CustomerID IN ACCOUNTS.CUSTOMERID%TYPE,
+  6          p_AccountType IN ACCOUNTS.ACCOUNTTYPE%TYPE,
+  7          p_Balance IN ACCOUNTS.BALANCE%TYPE
+  8      ) IS
+  9      BEGIN
+  10          INSERT INTO ACCOUNTS (
+  11              ACCOUNTID, CUSTOMERID, ACCOUNTTYPE, BALANCE, LASTMODIFIED
+  12          ) VALUES (
+  13              p_AccountID, p_CustomerID, p_AccountType, p_Balance, SYSDATE
+  14          );
+  15      EXCEPTION
+  16          WHEN DUP_VAL_ON_INDEX THEN
+  17              DBMS_OUTPUT.PUT_LINE('Account ID already exists.');
+  18      END OpenAccount;
+  19
+  20      PROCEDURE CloseAccount(
+  21          p_AccountID IN ACCOUNTS.ACCOUNTID%TYPE
+  22      ) IS
+  23      BEGIN
+  24          DELETE FROM ACCOUNTS
+  25          WHERE ACCOUNTID = p_AccountID;
+  26
+  27          IF SQL%ROWCOUNT = 0 THEN
+  28              DBMS_OUTPUT.PUT_LINE('Account ID not found.');
+  29          END IF;
+  30      END CloseAccount;
+  31
+  32      FUNCTION GetTotalBalance(
+  33          p_CustomerID IN ACCOUNTS.CUSTOMERID%TYPE
+  34      ) RETURN NUMBER IS
+  35          v_TotalBalance NUMBER := 0;
+  36      BEGIN
+  37          SELECT SUM(BALANCE) INTO v_TotalBalance
+  38          FROM ACCOUNTS
+  39          WHERE CUSTOMERID = p_CustomerID;
+  40
+  41          RETURN v_TotalBalance;
+  42      EXCEPTION
+  43          WHEN NO_DATA_FOUND THEN
+  44              DBMS_OUTPUT.PUT_LINE('No accounts found for the customer.');
+  45              RETURN NULL;
+  46      END GetTotalBalance;
+  47
+  48  END AccountOperations;
+  49  /
+
+ERROR at line 31:
+Not connected
+SQL> -- Before Using the Package
+SQL> SELECT * FROM Accounts;
+
+ERROR at line 82:
+Not connected
+SQL> -- Test Package Procedures and Function
+SQL> BEGIN
+  2      -- Open a new account
+  3      AccountOperations.OpenAccount(
+  4          p_AccountID => 4001,
+  5          p_CustomerID => 1,
+  6          p_AccountType => 'Savings',
+  7          p_Balance => 5000
+  8      );
+  9
+  10      -- Close an account
+  11      AccountOperations.CloseAccount(4001);
+  12
+  13      -- Get total balance for a customer
+  14      DECLARE
+  15          v_TotalBalance NUMBER;
+  16      BEGIN
+  17          v_TotalBalance := AccountOperations.GetTotalBalance(2);
+  18          DBMS_OUTPUT.PUT_LINE('Total balance for customer 2: ' || v_TotalBalance);
+  19      END;
+  20  END;
+  21  /
+
+ERROR at line 85:
+Not connected
+SQL> -- After Using the Package
+SQL> SELECT * FROM Accounts;
+
+ERROR at line 108:
+Not connected
+SQL> SPOOL OFF
+

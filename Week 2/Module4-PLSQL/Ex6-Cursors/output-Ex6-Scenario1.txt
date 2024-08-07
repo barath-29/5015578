@@ -1,0 +1,51 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- PL/SQL block to generate monthly statements for all customers
+SQL> DECLARE
+  2  	 CURSOR c_monthly_transactions IS
+  3  	     SELECT
+  4  		 t.TRANSACTIONID,
+  5  		 t.ACCOUNTID,
+  6  		 t.TRANSACTIONDATE,
+  7  		 t.AMOUNT,
+  8  		 t.TRANSACTIONTYPE,
+  9  		 a.CUSTOMERID,
+ 10  		 c.NAME
+ 11  	     FROM
+ 12  		 TRANSACTIONS t
+ 13  		 JOIN ACCOUNTS a ON t.ACCOUNTID = a.ACCOUNTID
+ 14  		 JOIN CUSTOMERS c ON a.CUSTOMERID = c.CUSTOMERID
+ 15  	     WHERE
+ 16  		 EXTRACT(MONTH FROM t.TRANSACTIONDATE) = EXTRACT(MONTH FROM SYSDATE)
+ 17  		 AND EXTRACT(YEAR FROM t.TRANSACTIONDATE) = EXTRACT(YEAR FROM SYSDATE);
+ 18  
+ 19  	 v_customer_id CUSTOMERS.CUSTOMERID%TYPE;
+ 20  	 v_customer_name CUSTOMERS.NAME%TYPE;
+ 21  	 v_transaction_details VARCHAR2(1000);
+ 22  BEGIN
+ 23  	 FOR r IN c_monthly_transactions LOOP
+ 24  	     v_customer_id := r.CUSTOMERID;
+ 25  	     v_customer_name := r.NAME;
+ 26  	     v_transaction_details := 'Transaction ID: ' || r.TRANSACTIONID ||
+ 27  				       ', Date: ' || TO_CHAR(r.TRANSACTIONDATE, 'YYYY-MM-DD') ||
+ 28  				       ', Amount: ' || r.AMOUNT ||
+ 29  				       ', Type: ' || r.TRANSACTIONTYPE;
+ 30  
+ 31  	     DBMS_OUTPUT.PUT_LINE('Customer: ' || v_customer_name || ' (ID: ' || v_customer_id || ')');
+ 32  	     DBMS_OUTPUT.PUT_LINE(v_transaction_details);
+ 33  	     DBMS_OUTPUT.PUT_LINE('---------------------------------------------');
+ 34  	 END LOOP;
+ 35  END;
+ 36  /
+Customer: John Doe (ID: 1)                                                      
+Transaction ID: 1, Date: 2024-08-05, Amount: 200, Type: Deposit                 
+---------------------------------------------                                   
+Customer: Jane Smith (ID: 2)                                                    
+Transaction ID: 2, Date: 2024-08-05, Amount: 300, Type: Withdrawal              
+---------------------------------------------                                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

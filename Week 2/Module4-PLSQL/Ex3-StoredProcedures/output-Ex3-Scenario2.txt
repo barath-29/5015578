@@ -1,0 +1,96 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Procedure to update employee bonus
+SQL> CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
+  2  	 p_department IN VARCHAR2,
+  3  	 p_bonus_percentage IN NUMBER
+  4  ) IS
+  5  BEGIN
+  6  	 UPDATE Employees
+  7  	 SET Salary = Salary + (Salary * p_bonus_percentage / 100)
+  8  	 WHERE Department = p_department;
+  9  
+ 10  	 COMMIT;
+ 11  	 DBMS_OUTPUT.PUT_LINE('Bonus has been updated for employees in department ' || p_department || '.');
+ 12  END UpdateEmployeeBonus;
+ 13  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Before calling procedure
+SQL> SELECT * FROM Employees;
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         1                                                                      
+Alice Johnson                                                                   
+Manager                                                 70000                   
+HR                                                 15-JUN-15                    
+                                                                                
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         2                                                                      
+Bob Brown                                                                       
+Developer                                               60000                   
+IT                                                 20-MAR-17                    
+                                                                                
+
+SQL> 
+SQL> -- Test the procedure
+SQL> BEGIN
+  2  	 UpdateEmployeeBonus('IT', 10); -- Apply 10% bonus to employees in IT department
+  3  END;
+  4  /
+Bonus has been updated for employees in department IT.                          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- After calling procedure
+SQL> SELECT * FROM Employees;
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         1                                                                      
+Alice Johnson                                                                   
+Manager                                                 70000                   
+HR                                                 15-JUN-15                    
+                                                                                
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         2                                                                      
+Bob Brown                                                                       
+Developer                                               66000                   
+IT                                                 20-MAR-17                    
+                                                                                
+
+SQL> 
+SQL> SPOOL OFF

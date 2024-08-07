@@ -1,0 +1,59 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Insert sample employees
+SQL> INSERT INTO EMPLOYEES (EMPLOYEEID, NAME, POSITION, SALARY, DEPARTMENT, HIREDATE)
+  2  VALUES (4001, 'Alice Johnson', 'Manager', 70000, 'HR', TO_DATE('2015-06-15', 'YYYY-MM-DD'));
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO EMPLOYEES (EMPLOYEEID, NAME, POSITION, SALARY, DEPARTMENT, HIREDATE)
+  2  VALUES (4002, 'Bob Brown', 'Developer', 60000, 'IT', TO_DATE('2017-03-20', 'YYYY-MM-DD'));
+
+1 row created.
+
+SQL> 
+SQL> -- Procedure to update salary
+SQL> CREATE OR REPLACE PROCEDURE UpdateSalary (
+  2  	 p_employee_id IN NUMBER,
+  3  	 p_percentage IN NUMBER
+  4  ) IS
+  5  	 employee_not_found EXCEPTION;
+  6  BEGIN
+  7  	 UPDATE Employees
+  8  	 SET Salary = Salary + (Salary * p_percentage / 100)
+  9  	 WHERE EmployeeID = p_employee_id;
+ 10  
+ 11  	 IF SQL%ROWCOUNT = 0 THEN
+ 12  	     RAISE employee_not_found;
+ 13  	 END IF;
+ 14  	 COMMIT;
+ 15  	     DBMS_OUTPUT.PUT_LINE('Salary Update Successfull');
+ 16  
+ 17  EXCEPTION
+ 18  	 WHEN employee_not_found THEN
+ 19  	     DBMS_OUTPUT.PUT_LINE('Error: Employee not found.');
+ 20  	     ROLLBACK;
+ 21  	 WHEN OTHERS THEN
+ 22  	     DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+ 23  	     ROLLBACK;
+ 24  END UpdateSalary;
+ 25  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Test the procedure
+SQL> BEGIN
+  2  	 UpdateSalary(4001, 10); -- This should be successful
+  3  	 UpdateSalary(9999, 10); -- This should cause employee not found error
+  4  END;
+  5  /
+Salary Update Successfull                                                       
+Error: Employee not found.                                                      
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

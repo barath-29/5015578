@@ -1,0 +1,72 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Scenario 3
+SQL> 
+SQL> -- Insert sample customer
+SQL> INSERT INTO CUSTOMERS (
+  2  	 CUSTOMERID,
+  3  	 NAME,
+  4  	 DOB,
+  5  	 BALANCE,
+  6  	 LASTMODIFIED
+  7  ) VALUES (
+  8  	 1005,
+  9  	 'Charlie Davis',
+ 10  	 TO_DATE('1990-01-01', 'YYYY-MM-DD'),
+ 11  	 7000,
+ 12  	 SYSDATE
+ 13  );
+
+1 row created.
+
+SQL> 
+SQL> -- Insert loan for the customer with end date within the next 30 days
+SQL> INSERT INTO LOANS (
+  2  	 LOANID,
+  3  	 CUSTOMERID,
+  4  	 LOANAMOUNT,
+  5  	 INTERESTRATE,
+  6  	 STARTDATE,
+  7  	 ENDDATE
+  8  ) VALUES (
+  9  	 2003,
+ 10  	 1005,
+ 11  	 20000,
+ 12  	 4,
+ 13  	 SYSDATE - 300,
+ 14  	 SYSDATE + 10
+ 15  );
+
+1 row created.
+
+SQL> 
+SQL> BEGIN
+  2  	 FOR LOAN_REC IN (
+  3  	     SELECT
+  4  		 L.LOANID,
+  5  		 L.CUSTOMERID,
+  6  		 C.NAME,
+  7  		 L.ENDDATE
+  8  	     FROM
+  9  		 LOANS	   L
+ 10  		 JOIN CUSTOMERS C
+ 11  		 ON L.CUSTOMERID = C.CUSTOMERID
+ 12  	     WHERE
+ 13  		 L.ENDDATE BETWEEN SYSDATE AND SYSDATE + 30
+ 14  	 ) LOOP
+ 15  	     DBMS_OUTPUT.PUT_LINE('Reminder: Loan ID '
+ 16  				  || LOAN_REC.LOANID
+ 17  				  || ' for customer '
+ 18  				  || LOAN_REC.NAME
+ 19  				  || ' is due on '
+ 20  				  || TO_CHAR(LOAN_REC.ENDDATE, 'YYYY-MM-DD'));
+ 21  	 END LOOP;
+ 22  END;
+ 23  /
+Reminder: Loan ID 2003 for customer Charlie Davis is due on 2024-08-15          
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

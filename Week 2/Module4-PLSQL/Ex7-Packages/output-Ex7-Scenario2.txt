@@ -1,0 +1,207 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> 
+SQL> -- Package Specification
+SQL> CREATE OR REPLACE PACKAGE EmployeeManagement AS
+  2  	 PROCEDURE HireEmployee(
+  3  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE,
+  4  	     p_Name IN EMPLOYEES.NAME%TYPE,
+  5  	     p_Position IN EMPLOYEES.POSITION%TYPE,
+  6  	     p_Salary IN EMPLOYEES.SALARY%TYPE,
+  7  	     p_Department IN EMPLOYEES.DEPARTMENT%TYPE
+  8  	 );
+  9  
+ 10  	 PROCEDURE UpdateEmployee(
+ 11  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE,
+ 12  	     p_Name IN EMPLOYEES.NAME%TYPE,
+ 13  	     p_Position IN EMPLOYEES.POSITION%TYPE,
+ 14  	     p_Salary IN EMPLOYEES.SALARY%TYPE,
+ 15  	     p_Department IN EMPLOYEES.DEPARTMENT%TYPE
+ 16  	 );
+ 17  
+ 18  	 FUNCTION CalculateAnnualSalary(
+ 19  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE
+ 20  	 ) RETURN NUMBER;
+ 21  END EmployeeManagement;
+ 22  /
+
+Package created.
+
+SQL> 
+SQL> -- Package Body
+SQL> CREATE OR REPLACE PACKAGE BODY EmployeeManagement AS
+  2  
+  3  	 PROCEDURE HireEmployee(
+  4  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE,
+  5  	     p_Name IN EMPLOYEES.NAME%TYPE,
+  6  	     p_Position IN EMPLOYEES.POSITION%TYPE,
+  7  	     p_Salary IN EMPLOYEES.SALARY%TYPE,
+  8  	     p_Department IN EMPLOYEES.DEPARTMENT%TYPE
+  9  	 ) IS
+ 10  	 BEGIN
+ 11  	     INSERT INTO EMPLOYEES (
+ 12  		 EMPLOYEEID, NAME, POSITION, SALARY, DEPARTMENT, HIREDATE
+ 13  	     ) VALUES (
+ 14  		 p_EmployeeID, p_Name, p_Position, p_Salary, p_Department, SYSDATE
+ 15  	     );
+ 16  	 EXCEPTION
+ 17  	     WHEN DUP_VAL_ON_INDEX THEN
+ 18  		 DBMS_OUTPUT.PUT_LINE('Employee ID already exists.');
+ 19  	 END HireEmployee;
+ 20  
+ 21  	 PROCEDURE UpdateEmployee(
+ 22  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE,
+ 23  	     p_Name IN EMPLOYEES.NAME%TYPE,
+ 24  	     p_Position IN EMPLOYEES.POSITION%TYPE,
+ 25  	     p_Salary IN EMPLOYEES.SALARY%TYPE,
+ 26  	     p_Department IN EMPLOYEES.DEPARTMENT%TYPE
+ 27  	 ) IS
+ 28  	 BEGIN
+ 29  	     UPDATE EMPLOYEES
+ 30  	     SET NAME = p_Name, POSITION = p_Position, SALARY = p_Salary, DEPARTMENT = p_Department
+ 31  	     WHERE EMPLOYEEID = p_EmployeeID;
+ 32  
+ 33  	     IF SQL%ROWCOUNT = 0 THEN
+ 34  		 DBMS_OUTPUT.PUT_LINE('Employee ID not found.');
+ 35  	     END IF;
+ 36  	 END UpdateEmployee;
+ 37  
+ 38  	 FUNCTION CalculateAnnualSalary(
+ 39  	     p_EmployeeID IN EMPLOYEES.EMPLOYEEID%TYPE
+ 40  	 ) RETURN NUMBER IS
+ 41  	     v_Salary EMPLOYEES.SALARY%TYPE;
+ 42  	     v_AnnualSalary NUMBER;
+ 43  	 BEGIN
+ 44  	     SELECT SALARY INTO v_Salary
+ 45  	     FROM EMPLOYEES
+ 46  	     WHERE EMPLOYEEID = p_EmployeeID;
+ 47  
+ 48  	     v_AnnualSalary := v_Salary * 12;
+ 49  	     RETURN v_AnnualSalary;
+ 50  	 EXCEPTION
+ 51  	     WHEN NO_DATA_FOUND THEN
+ 52  		 DBMS_OUTPUT.PUT_LINE('Employee ID not found.');
+ 53  		 RETURN NULL;
+ 54  	 END CalculateAnnualSalary;
+ 55  
+ 56  END EmployeeManagement;
+ 57  /
+
+Package body created.
+
+SQL> 
+SQL> -- Before Using the Package
+SQL> SELECT * FROM Employees;
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         1                                                                      
+Alice Johnson                                                                   
+Manager                                                 70000                   
+HR                                                 15-JUN-15                    
+                                                                                
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         2                                                                      
+Bob Brown                                                                       
+Developer                                               60000                   
+IT                                                 20-MAR-17                    
+                                                                                
+
+SQL> 
+SQL> -- Test Package Procedures and Function
+SQL> BEGIN
+  2  	 -- Hire a new employee
+  3  	 EmployeeManagement.HireEmployee(
+  4  	     p_EmployeeID => 5,
+  5  	     p_Name => 'Rick Brown',
+  6  	     p_Position => 'Developer',
+  7  	     p_Salary => 7000,
+  8  	     p_Department => 'IT'
+  9  	 );
+ 10  
+ 11  	 -- Update employee details
+ 12  	 EmployeeManagement.UpdateEmployee(
+ 13  	     p_EmployeeID => 2,
+ 14  	     p_Name => 'Dan Smith',
+ 15  	     p_Position => 'Senior Developer',
+ 16  	     p_Salary => 8000,
+ 17  	     p_Department => 'IT'
+ 18  	 );
+ 19  
+ 20  	 -- Calculate annual salary
+ 21  	 DECLARE
+ 22  	     v_AnnualSalary NUMBER;
+ 23  	 BEGIN
+ 24  	     v_AnnualSalary := EmployeeManagement.CalculateAnnualSalary(3001);
+ 25  	     DBMS_OUTPUT.PUT_LINE('Annual salary for employee 3001: ' || v_AnnualSalary);
+ 26  	 END;
+ 27  END;
+ 28  /
+Employee ID not found.                                                          
+Annual salary for employee 3001:                                                
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- After Using the Package
+SQL> SELECT * FROM Employees;
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         1                                                                      
+Alice Johnson                                                                   
+Manager                                                 70000                   
+HR                                                 15-JUN-15                    
+                                                                                
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         2                                                                      
+Dan Smith                                                                       
+Senior Developer                                         8000                   
+IT                                                 20-MAR-17                    
+                                                                                
+
+EMPLOYEEID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+POSITION                                               SALARY                   
+-------------------------------------------------- ----------                   
+DEPARTMENT                                         HIREDATE                     
+-------------------------------------------------- ---------                    
+         5                                                                      
+Rick Brown                                                                      
+Developer                                                7000                   
+IT                                                 05-AUG-24                    
+                                                                                
+
+SQL> 
+SQL> SPOOL OFF

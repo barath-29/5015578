@@ -1,0 +1,122 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30);
+SQL> 
+SQL> -- Scenario 2
+SQL> 
+SQL> -- Insert sample customers with varying balances
+SQL> INSERT INTO CUSTOMERS (
+  2  	 CUSTOMERID,
+  3  	 NAME,
+  4  	 DOB,
+  5  	 BALANCE,
+  6  	 LASTMODIFIED
+  7  ) VALUES (
+  8  	 1003,
+  9  	 'Kyle',
+ 10  	 TO_DATE('1980-01-01', 'YYYY-MM-DD'),
+ 11  	 15000,
+ 12  	 SYSDATE
+ 13  );
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO CUSTOMERS (
+  2  	 CUSTOMERID,
+  3  	 NAME,
+  4  	 DOB,
+  5  	 BALANCE,
+  6  	 LASTMODIFIED
+  7  ) VALUES (
+  8  	 1004,
+  9  	 'Zach',
+ 10  	 TO_DATE('1985-01-01', 'YYYY-MM-DD'),
+ 11  	 8000,
+ 12  	 SYSDATE
+ 13  );
+
+1 row created.
+
+SQL> 
+SQL> ALTER TABLE CUSTOMERS
+  2  	 ADD (
+  3  	     ISVIP VARCHAR2(5)
+  4  	 );
+
+Table altered.
+
+SQL> 
+SQL> BEGIN
+  2  	 FOR CUSTOMER_REC IN (
+  3  	     SELECT
+  4  		 CUSTOMERID,
+  5  		 BALANCE
+  6  	     FROM
+  7  		 CUSTOMERS
+  8  	 ) LOOP
+  9  	     IF CUSTOMER_REC.BALANCE > 10000 THEN
+ 10  		 UPDATE CUSTOMERS
+ 11  		 SET
+ 12  		     ISVIP='TRUE'
+ 13  		 WHERE
+ 14  		     CUSTOMERID = CUSTOMER_REC.CUSTOMERID;
+ 15  	     ELSE
+ 16  		 UPDATE CUSTOMERS
+ 17  		 SET
+ 18  		     ISVIP='FALSE'
+ 19  		 WHERE
+ 20  		     CUSTOMERID = CUSTOMER_REC.CUSTOMERID;
+ 21  	     END IF;
+ 22  	 END LOOP;
+ 23  END;
+ 24  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Select from customers to see the changes
+SQL> SELECT
+  2  	 *
+  3  FROM
+  4  	 CUSTOMERS;
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF ISVIP                                            
+--------- ---------- --------- -----                                            
+         1                                                                      
+John Doe                                                                        
+15-MAY-85       1000 05-AUG-24 FALSE                                            
+                                                                                
+         2                                                                      
+Jane Smith                                                                      
+20-JUL-90       1500 05-AUG-24 FALSE                                            
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF ISVIP                                            
+--------- ---------- --------- -----                                            
+                                                                                
+      1003                                                                      
+Kyle                                                                            
+01-JAN-80      15000 05-AUG-24 TRUE                                             
+                                                                                
+      1004                                                                      
+Zach                                                                            
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF ISVIP                                            
+--------- ---------- --------- -----                                            
+01-JAN-85       8000 05-AUG-24 FALSE                                            
+                                                                                
+
+SQL> 
+SQL> -- Stop spooling
+SQL> SPOOL OFF

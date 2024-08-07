@@ -1,0 +1,26 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- PL/SQL block to update interest rates for all loans based on a new policy
+SQL> DECLARE
+  2  	 CURSOR c_loans IS
+  3  	     SELECT LOANID, INTERESTRATE
+  4  	     FROM LOANS;
+  5  
+  6  	 v_new_interest_rate NUMBER := 3; -- Example new interest rate
+  7  BEGIN
+  8  	 FOR r IN c_loans LOOP
+  9  	     UPDATE LOANS
+ 10  	     SET INTERESTRATE = v_new_interest_rate
+ 11  	     WHERE LOANID = r.LOANID;
+ 12  
+ 13  	     DBMS_OUTPUT.PUT_LINE('Loan ID: ' || r.LOANID || ' - Interest rate updated to: ' || v_new_interest_rate);
+ 14  	 END LOOP;
+ 15  END;
+ 16  /
+Loan ID: 1 - Interest rate updated to: 3                                        
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

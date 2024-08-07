@@ -1,0 +1,172 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Package Specification
+SQL> CREATE OR REPLACE PACKAGE CustomerManagement AS
+  2  	 PROCEDURE AddCustomer(
+  3  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE,
+  4  	     p_Name IN CUSTOMERS.NAME%TYPE,
+  5  	     p_DOB IN CUSTOMERS.DOB%TYPE,
+  6  	     p_Balance IN CUSTOMERS.BALANCE%TYPE
+  7  	 );
+  8  
+  9  	 PROCEDURE UpdateCustomer(
+ 10  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE,
+ 11  	     p_Name IN CUSTOMERS.NAME%TYPE,
+ 12  	     p_Balance IN CUSTOMERS.BALANCE%TYPE
+ 13  	 );
+ 14  
+ 15  	 FUNCTION GetCustomerBalance(
+ 16  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE
+ 17  	 ) RETURN CUSTOMERS.BALANCE%TYPE;
+ 18  END CustomerManagement;
+ 19  /
+
+Package created.
+
+SQL> 
+SQL> -- Package Body
+SQL> CREATE OR REPLACE PACKAGE BODY CustomerManagement AS
+  2  
+  3  	 PROCEDURE AddCustomer(
+  4  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE,
+  5  	     p_Name IN CUSTOMERS.NAME%TYPE,
+  6  	     p_DOB IN CUSTOMERS.DOB%TYPE,
+  7  	     p_Balance IN CUSTOMERS.BALANCE%TYPE
+  8  	 ) IS
+  9  	 BEGIN
+ 10  	     INSERT INTO CUSTOMERS (
+ 11  		 CUSTOMERID, NAME, DOB, BALANCE, LASTMODIFIED
+ 12  	     ) VALUES (
+ 13  		 p_CustomerID, p_Name, p_DOB, p_Balance, SYSDATE
+ 14  	     );
+ 15  	 EXCEPTION
+ 16  	     WHEN DUP_VAL_ON_INDEX THEN
+ 17  		 DBMS_OUTPUT.PUT_LINE('Customer ID already exists.');
+ 18  	 END AddCustomer;
+ 19  
+ 20  	 PROCEDURE UpdateCustomer(
+ 21  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE,
+ 22  	     p_Name IN CUSTOMERS.NAME%TYPE,
+ 23  	     p_Balance IN CUSTOMERS.BALANCE%TYPE
+ 24  	 ) IS
+ 25  	 BEGIN
+ 26  	     UPDATE CUSTOMERS
+ 27  	     SET NAME = p_Name, BALANCE = p_Balance, LASTMODIFIED = SYSDATE
+ 28  	     WHERE CUSTOMERID = p_CustomerID;
+ 29  
+ 30  	     IF SQL%ROWCOUNT = 0 THEN
+ 31  		 DBMS_OUTPUT.PUT_LINE('Customer ID not found.');
+ 32  	     END IF;
+ 33  	 END UpdateCustomer;
+ 34  
+ 35  	 FUNCTION GetCustomerBalance(
+ 36  	     p_CustomerID IN CUSTOMERS.CUSTOMERID%TYPE
+ 37  	 ) RETURN CUSTOMERS.BALANCE%TYPE IS
+ 38  	     v_Balance CUSTOMERS.BALANCE%TYPE;
+ 39  	 BEGIN
+ 40  	     SELECT BALANCE INTO v_Balance
+ 41  	     FROM CUSTOMERS
+ 42  	     WHERE CUSTOMERID = p_CustomerID;
+ 43  
+ 44  	     RETURN v_Balance;
+ 45  	 EXCEPTION
+ 46  	     WHEN NO_DATA_FOUND THEN
+ 47  		 DBMS_OUTPUT.PUT_LINE('Customer ID not found.');
+ 48  		 RETURN NULL;
+ 49  	 END GetCustomerBalance;
+ 50  
+ 51  END CustomerManagement;
+ 52  /
+
+Package body created.
+
+SQL> 
+SQL> -- Before Using the Package
+SQL> SELECT * FROM Customers;
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+         1                                                                      
+John Doe                                                                        
+15-MAY-85       1000 05-AUG-24                                                  
+                                                                                
+         2                                                                      
+Jane Smith                                                                      
+20-JUL-90       1500 05-AUG-24                                                  
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+                                                                                
+
+SQL> 
+SQL> -- Test Package Procedures and Function
+SQL> BEGIN
+  2  	 -- Add a new customer
+  3  	 CustomerManagement.AddCustomer(
+  4  	     p_CustomerID => 2001,
+  5  	     p_Name => 'Alice Johnson',
+  6  	     p_DOB => TO_DATE('1985-06-15', 'YYYY-MM-DD'),
+  7  	     p_Balance => 3000
+  8  	 );
+  9  
+ 10  	 -- Update an existing customer
+ 11  	 CustomerManagement.UpdateCustomer(
+ 12  	     p_CustomerID => 2001,
+ 13  	     p_Name => 'Alice Thompson',
+ 14  	     p_Balance => 3500
+ 15  	 );
+ 16  
+ 17  	 -- Get customer balance
+ 18  	 DECLARE
+ 19  	     v_Balance CUSTOMERS.BALANCE%TYPE;
+ 20  	 BEGIN
+ 21  	     v_Balance := CustomerManagement.GetCustomerBalance(2001);
+ 22  	     DBMS_OUTPUT.PUT_LINE('Balance for customer 2001: ' || v_Balance);
+ 23  	 END;
+ 24  END;
+ 25  /
+Balance for customer 2001: 3500                                                 
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- After Using the Package
+SQL> SELECT * FROM Customers;
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+         1                                                                      
+John Doe                                                                        
+15-MAY-85       1000 05-AUG-24                                                  
+                                                                                
+         2                                                                      
+Jane Smith                                                                      
+20-JUL-90       1500 05-AUG-24                                                  
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+                                                                                
+      2001                                                                      
+Alice Thompson                                                                  
+15-JUN-85       3500 05-AUG-24                                                  
+                                                                                
+
+SQL> 
+SQL> SPOOL OFF

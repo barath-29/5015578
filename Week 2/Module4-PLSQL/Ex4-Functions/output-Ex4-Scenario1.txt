@@ -1,0 +1,31 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Function to calculate the age of a customer
+SQL> CREATE OR REPLACE FUNCTION CalculateAge (
+  2  	 p_dob DATE
+  3  ) RETURN NUMBER IS
+  4  	 v_age NUMBER;
+  5  BEGIN
+  6  	 v_age := TRUNC(MONTHS_BETWEEN(SYSDATE, p_dob) / 12);
+  7  	 RETURN v_age;
+  8  END CalculateAge;
+  9  /
+
+Function created.
+
+SQL> 
+SQL> -- Test the function
+SQL> DECLARE
+  2  	 v_age NUMBER;
+  3  BEGIN
+  4  	 v_age := CalculateAge(TO_DATE('1990-01-01', 'YYYY-MM-DD'));
+  5  	 DBMS_OUTPUT.PUT_LINE('Age: ' || v_age);
+  6  END;
+  7  /
+Age: 34                                                                         
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

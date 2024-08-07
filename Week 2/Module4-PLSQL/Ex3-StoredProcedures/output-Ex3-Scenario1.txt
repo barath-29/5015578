@@ -1,0 +1,43 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Procedure to process monthly interest for savings accounts
+SQL> CREATE OR REPLACE PROCEDURE PROCESSMONTHLYINTEREST IS
+  2  BEGIN
+  3  	 UPDATE ACCOUNTS
+  4  	 SET
+  5  	     BALANCE = BALANCE + (
+  6  		 BALANCE * 0.01
+  7  	     )
+  8  	 WHERE
+  9  	     ACCOUNTTYPE = 'Savings';
+ 10  	 COMMIT;
+ 11  	 DBMS_OUTPUT.PUT_LINE('Monthly interest has been applied to all savings accounts.');
+ 12  END PROCESSMONTHLYINTEREST;
+ 13  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Test the procedure
+SQL> BEGIN
+  2  	 PROCESSMONTHLYINTEREST;
+  3  END;
+  4  /
+Monthly interest has been applied to all savings accounts.                      
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SELECT
+  2  	 *
+  3  FROM
+  4  	 ACCOUNTS;
+
+ ACCOUNTID CUSTOMERID ACCOUNTTYPE             BALANCE LASTMODIF                 
+---------- ---------- -------------------- ---------- ---------                 
+         1          1 Savings                    1010 05-AUG-24                 
+         2          2 Checking                   1500 05-AUG-24                 
+
+SQL> 
+SQL> SPOOL OFF

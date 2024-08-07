@@ -1,0 +1,63 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Procedure to transfer funds between accounts
+SQL> CREATE OR REPLACE PROCEDURE TransferFunds (
+  2  	 p_from_account_id IN NUMBER,
+  3  	 p_to_account_id IN NUMBER,
+  4  	 p_amount IN NUMBER
+  5  ) IS
+  6  	 insufficient_funds EXCEPTION;
+  7  	 v_balance NUMBER;
+  8  BEGIN
+  9  	 SELECT Balance INTO v_balance FROM Accounts WHERE AccountID = p_from_account_id;
+ 10  
+ 11  	 IF v_balance < p_amount THEN
+ 12  	     RAISE insufficient_funds;
+ 13  	 ELSE
+ 14  	     UPDATE Accounts SET Balance = Balance - p_amount WHERE AccountID = p_from_account_id;
+ 15  	     UPDATE Accounts SET Balance = Balance + p_amount WHERE AccountID = p_to_account_id;
+ 16  	     COMMIT;
+ 17  	 END IF;
+ 18  
+ 19  EXCEPTION
+ 20  	 WHEN insufficient_funds THEN
+ 21  	     DBMS_OUTPUT.PUT_LINE('Error: Insufficient funds in the source account.');
+ 22  	     ROLLBACK;
+ 23  	 WHEN OTHERS THEN
+ 24  	     DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+ 25  	     ROLLBACK;
+ 26  END TransferFunds;
+ 27  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Before the procedure call
+SQL> SELECT * FROM Accounts;
+
+ ACCOUNTID CUSTOMERID ACCOUNTTYPE             BALANCE LASTMODIF                 
+---------- ---------- -------------------- ---------- ---------                 
+         1          1 Savings                    1000 05-AUG-24                 
+         2          2 Checking                   1500 05-AUG-24                 
+
+SQL> 
+SQL> -- Test the procedure
+SQL> BEGIN
+  2  	 TransferFunds(1, 2, 800); -- Transfer 800 from account 1 to account 2
+  3  END;
+  4  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- After the procedure call
+SQL> SELECT * FROM Accounts;
+
+ ACCOUNTID CUSTOMERID ACCOUNTTYPE             BALANCE LASTMODIF                 
+---------- ---------- -------------------- ---------- ---------                 
+         1          1 Savings                     200 05-AUG-24                 
+         2          2 Checking                   2300 05-AUG-24                 
+
+SQL> 
+SQL> SPOOL OFF

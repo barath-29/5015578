@@ -1,0 +1,45 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Procedure to add a new customer
+SQL> CREATE OR REPLACE PROCEDURE AddNewCustomer (
+  2  	 p_customer_id IN NUMBER,
+  3  	 p_name IN VARCHAR2,
+  4  	 p_dob IN DATE,
+  5  	 p_balance IN NUMBER
+  6  ) IS
+  7  	 customer_exists EXCEPTION;
+  8  BEGIN
+  9  	 INSERT INTO Customers (CustomerID, Name, DOB, Balance, LastModified)
+ 10  	 VALUES (p_customer_id, p_name, p_dob, p_balance, SYSDATE);
+ 11  
+ 12  	 COMMIT;
+ 13  
+ 14  	 DBMS_OUTPUT.PUT_LINE('Customer successfully added');
+ 15  
+ 16  EXCEPTION
+ 17  	 WHEN DUP_VAL_ON_INDEX THEN
+ 18  	     DBMS_OUTPUT.PUT_LINE('Error: Customer with ID ' || p_customer_id || ' already exists.');
+ 19  	     ROLLBACK;
+ 20  	 WHEN OTHERS THEN
+ 21  	     DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+ 22  	     ROLLBACK;
+ 23  END AddNewCustomer;
+ 24  /
+
+Procedure created.
+
+SQL> 
+SQL> -- Test the procedure
+SQL> BEGIN
+  2  	 AddNewCustomer(1006, 'David Wright', TO_DATE('1980-02-15', 'YYYY-MM-DD'), 8000); -- This should be successful
+  3  	 AddNewCustomer(1006, 'Eve Adams', TO_DATE('1985-03-10', 'YYYY-MM-DD'), 9000); -- This should cause duplicate customer error
+  4  END;
+  5  /
+Customer successfully added                                                     
+Error: Customer with ID 1006 already exists.                                    
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF

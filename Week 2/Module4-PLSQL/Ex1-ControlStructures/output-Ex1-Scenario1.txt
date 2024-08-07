@@ -1,0 +1,119 @@
+SQL> 
+SQL> -- Declare a variable for input
+SQL> VARIABLE input VARCHAR2(30);
+SQL> 
+SQL> -- Scenario 1
+SQL> 
+SQL> -- Insert sample customers older than 60 years
+SQL> INSERT INTO CUSTOMERS (
+  2  	 CUSTOMERID,
+  3  	 NAME,
+  4  	 DOB,
+  5  	 BALANCE,
+  6  	 LASTMODIFIED
+  7  ) VALUES (
+  8  	 1001,
+  9  	 'John Doe',
+ 10  	 TO_DATE('1950-01-01', 'YYYY-MM-DD'),
+ 11  	 5000,
+ 12  	 SYSDATE
+ 13  );
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO CUSTOMERS (
+  2  	 CUSTOMERID,
+  3  	 NAME,
+  4  	 DOB,
+  5  	 BALANCE,
+  6  	 LASTMODIFIED
+  7  ) VALUES (
+  8  	 1002,
+  9  	 'Jane Smith',
+ 10  	 TO_DATE('1955-01-01', 'YYYY-MM-DD'),
+ 11  	 6000,
+ 12  	 SYSDATE
+ 13  );
+
+1 row created.
+
+SQL> 
+SQL> -- Insert loans for these customers
+SQL> INSERT INTO LOANS (
+  2  	 LOANID,
+  3  	 CUSTOMERID,
+  4  	 LOANAMOUNT,
+  5  	 INTERESTRATE,
+  6  	 STARTDATE,
+  7  	 ENDDATE
+  8  ) VALUES (
+  9  	 2001,
+ 10  	 1001,
+ 11  	 10000,
+ 12  	 5,
+ 13  	 SYSDATE - 100,
+ 14  	 SYSDATE + 365
+ 15  );
+
+1 row created.
+
+SQL> 
+SQL> INSERT INTO LOANS (
+  2  	 LOANID,
+  3  	 CUSTOMERID,
+  4  	 LOANAMOUNT,
+  5  	 INTERESTRATE,
+  6  	 STARTDATE,
+  7  	 ENDDATE
+  8  ) VALUES (
+  9  	 2002,
+ 10  	 1002,
+ 11  	 15000,
+ 12  	 5,
+ 13  	 SYSDATE - 200,
+ 14  	 SYSDATE + 365
+ 15  );
+
+1 row created.
+
+SQL> 
+SQL> -- Update the interest rate for customers older than 60
+SQL> BEGIN
+  2  	 FOR CUSTOMER_REC IN (
+  3  	     SELECT
+  4  		 CUSTOMERID,
+  5  		 TRUNC(MONTHS_BETWEEN(SYSDATE, DOB) / 12) AS AGE
+  6  	     FROM
+  7  		 CUSTOMERS
+  8  	 ) LOOP
+  9  	     IF CUSTOMER_REC.AGE > 60 THEN
+ 10  		 UPDATE LOANS
+ 11  		 SET
+ 12  		     INTERESTRATE = INTERESTRATE - 1
+ 13  		 WHERE
+ 14  		     CUSTOMERID = CUSTOMER_REC.CUSTOMERID;
+ 15  	     END IF;
+ 16  	 END LOOP;
+ 17  END;
+ 18  /
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> -- Select from loans to see the changes
+SQL> SELECT
+  2  	 *
+  3  FROM
+  4  	 LOANS;
+
+    LOANID CUSTOMERID LOANAMOUNT INTERESTRATE STARTDATE ENDDATE                 
+---------- ---------- ---------- ------------ --------- ---------               
+         1          1       5000            5 05-AUG-24 05-AUG-29               
+      2001       1001      10000            4 27-APR-24 05-AUG-25               
+      2002       1002      15000            4 18-JAN-24 05-AUG-25               
+
+SQL> 
+SQL> 
+SQL> -- Stop spooling
+SQL> SPOOL OFF;

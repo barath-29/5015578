@@ -1,0 +1,76 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Trigger to automatically update the LastModified date when a customer's record is updated
+SQL> CREATE OR REPLACE TRIGGER UpdateCustomerLastModified
+  2  BEFORE UPDATE ON CUSTOMERS
+  3  FOR EACH ROW
+  4  BEGIN
+  5  	 :NEW.LastModified := SYSDATE;
+  6  END;
+  7  /
+
+Trigger created.
+
+SQL> 
+SQL> -- Before Updation
+SQL> SELECT * FROM CUSTOMERS;
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+         1                                                                      
+John Doe                                                                        
+15-MAY-85       1000 05-AUG-24                                                  
+                                                                                
+         2                                                                      
+Jane Smith                                                                      
+20-JUL-90       1500 05-AUG-24                                                  
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+                                                                                
+
+SQL> 
+SQL> -- Test the trigger by updating a customer record
+SQL> UPDATE CUSTOMERS
+  2  SET NAME = 'Richard Nomad'
+  3  WHERE CUSTOMERID = 1;
+
+1 row updated.
+
+SQL> 
+SQL> -- Verify the change
+SQL> SELECT * FROM CUSTOMERS;
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+         1                                                                      
+Richard Nomad                                                                   
+15-MAY-85       1000 05-AUG-24                                                  
+                                                                                
+         2                                                                      
+Jane Smith                                                                      
+20-JUL-90       1500 05-AUG-24                                                  
+
+CUSTOMERID                                                                      
+----------                                                                      
+NAME                                                                            
+--------------------------------------------------------------------------------
+DOB          BALANCE LASTMODIF                                                  
+--------- ---------- ---------                                                  
+                                                                                
+
+SQL> 
+SQL> SPOOL OFF

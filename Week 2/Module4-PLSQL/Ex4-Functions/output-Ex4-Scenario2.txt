@@ -1,0 +1,43 @@
+SQL> 
+SQL> VARIABLE input VARCHAR2(30)
+SQL> 
+SQL> -- Function to calculate the monthly installment for a loan
+SQL> CREATE OR REPLACE FUNCTION CalculateMonthlyInstallment (
+  2  	 p_loan_amount NUMBER,
+  3  	 p_interest_rate NUMBER,
+  4  	 p_duration_years NUMBER
+  5  ) RETURN NUMBER IS
+  6  	 v_monthly_installment NUMBER;
+  7  	 v_monthly_rate NUMBER;
+  8  	 v_total_months NUMBER;
+  9  BEGIN
+ 10  	 v_monthly_rate := p_interest_rate / 12 / 100;
+ 11  	 v_total_months := p_duration_years * 12;
+ 12  
+ 13  	 IF v_monthly_rate > 0 THEN
+ 14  	     v_monthly_installment := p_loan_amount * (v_monthly_rate * POWER(1 + v_monthly_rate, v_total_months)) / (POWER(1 + v_monthly_rate, v_total_months) - 1);
+ 15  	 ELSE
+ 16  	     v_monthly_installment := p_loan_amount / v_total_months;
+ 17  	 END IF;
+ 18  
+ 19  	 RETURN v_monthly_installment;
+ 20  END CalculateMonthlyInstallment;
+ 21  /
+
+Function created.
+
+SQL> 
+SQL> -- Test the function
+SQL> DECLARE
+  2  	 v_installment NUMBER;
+  3  BEGIN
+  4  	 v_installment := CalculateMonthlyInstallment(10000, 5, 10); -- Loan amount: 10000, Interest rate: 5%, Duration: 10 years
+  5  	 DBMS_OUTPUT.PUT_LINE('Monthly Installment: ' || v_installment);
+  6  END;
+  7  /
+Monthly Installment: 106.065515239075232218279804429550842733                   
+
+PL/SQL procedure successfully completed.
+
+SQL> 
+SQL> SPOOL OFF
